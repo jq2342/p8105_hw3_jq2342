@@ -46,6 +46,8 @@ On day_id=24 and 31, both Saturday there is a significant dip in activity
 
 >Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
+
+
 ```{r}
 accel_plot=
   ggplot(accel_data, aes(x=activity, y=activity_count)) +
