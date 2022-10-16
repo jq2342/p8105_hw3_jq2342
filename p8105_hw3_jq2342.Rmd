@@ -1,0 +1,115 @@
+---
+title: "Homework 3"
+author: "Junyu QI jq2342"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+
+### Loading package and data
+```{r}
+library(tidyverse)
+```
+
+
+# Problem 2
+
+>Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+
+```{r}
+accel_data=
+read_csv("./accel_data.csv") %>%
+  janitor::clean_names() %>%
+  mutate(weekday_weekend =case_when(day == "Saturday"|day =="Sunday" ~ "weekend", TRUE ~"weekday" )) %>%
+  mutate (day=as.factor(day), day=fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+  mutate (week=as.numeric(week), weekday_weekend=as.factor(weekday_weekend)) %>%
+  pivot_longer(
+    cols=starts_with ("activity"), 
+  names_to = "activity",
+  names_prefix= "activity_", 
+  values_to = "activity_count") %>%
+  mutate (activity_count=as.numeric(activity_count), activity=as.numeric(activity))
+```
+
+The `accel_data` dataframe contains `r nrow(accel_data)` observations and r ncol(accel_data). Important variables include`week`, `day_id`, `activity` and `activity_count`.
+
+
+>Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+
+```{r}
+accel_1= accel_data %>%
+  group_by(day_id, day) %>% 
+  summarize(activity_sum = sum(activity_count)) 
+```
+
+On day_id=24 and 31, both Saturday there is a significant dip in activity
+
+>Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+
+```{r}
+accel_plot=
+  ggplot(accel_data, aes(x=activity, y=activity_count)) +
+  geom_point(aes(color=day))+
+  scale_x_continuous(breaks=c(120,240,360,480,600,720,840,960,1080,1200,1320,1440))+
+  labs(
+    title = "Activity count per minute over the day",
+    x = "Minute",
+    y = "Activity Count"
+  )+
+  theme(legend.position = "bottom")
+
+ggsave("accel_plot.pdf", accel_plot, width = 8, height = 5)
+```
+
+There are 4 activity peaks over the span of one day at minute 420 (7am) on Wed and Thu, 660(11am) on Sun, 1020(5pm) on Sat and Sun, and around 1200-1320(8pm-10pm) on Fri, Mon and Sat. Other than these significant peaks, general pattern of activity level maintains  around 625/min from 12am-6am. Average activity level then goes up to around 1250/per from 6am-12pm.
+
+
+# Problem 3
+
+>Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
+
+```{r}
+library(p8105.datasets)
+data("ny_noaa")
+
+ny_noaa=ny_noaa %>%
+  separate(date, into = c("year", "month", "day")) %>%
+  mutate(tmax=as.numeric(tmax), tmin=as.numeric(tmin), year=as.integer(year), month=as.integer(month), day=as.integer(day))  %>%
+  summarise(snow = median(snow, na.rm=TRUE))
+```
+The most commonly observed values for snowfall is `summarise(ny_noaa,snow = median(snow, na.rm=TRUE))`
+
+>Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+```{r}
+ny_noaa_1=ny_noaa %>%
+  group_by(id, year, month) %>%
+  filter(month %in% c(1,7)) %>%
+  summarise(average_tmax= mean(tmax))
+
+noaa_plot_1=ggplot(ny_noaa_1, aes(year,average_tmax, na.rm=TRUE, group=id)) +
+  geom_point()+
+  labs(y= "Average max temperature", x = "Year")+
+  facet_grid(. ~month)
+
+ggsave("noaa_plot_1.pdf", noaa_plot_1, width = 8, height = 5)
+```
+
+>Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+```{r}
+noaa_plot_2=
+  ggplot(ny_noaa, aes(y=tmin, x =tmax, na.rm=TRUE)) +
+  geom_hex()+
+  labs(y= "Min temperature", x = "Max temperature")
+
+noaa_plot_2=ny_noaa %>%
+  group_by(year) %>%
+  filter(snow %in% c(1:99)) %>%
+  ggplot(aes(x=year, y=snow,na.rm=TRUE))+
+  geom_histogram()+
+  labs(y= "Snowfall", x = "Year")
+
+ggsave("noaa_plot_2.pdf", noaa_plot_2, width = 8, height = 5)
+```
+
