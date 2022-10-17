@@ -42,7 +42,7 @@ accel_1= accel_data %>%
   summarize(activity_sum = sum(activity_count)) 
 ```
 
-On day_id=24 and 31, both Saturday there is a significant dip in activity
+On `day_id` 24 and 31, both Saturday there is a significant dip in activity
 
 >Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
@@ -87,13 +87,14 @@ ny_noaa_1=ny_noaa %>%
   filter(month %in% c(1,7)) %>%
   summarise(average_tmax= mean(tmax))
 
-noaa_plot_1=ggplot(ny_noaa_1, aes(year,average_tmax, na.rm=TRUE, group=id)) +
+noaa_plot_1=ggplot(ny_noaa_1, aes(year,average_tmax, na.rm=TRUE, group=id))+
   geom_point()+
   labs(y= "Average max temperature", x = "Year")+
   facet_grid(. ~month)
 
 ggsave("noaa_plot_1.pdf", noaa_plot_1, width = 8, height = 5)
 ```
+
 
 >Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 
