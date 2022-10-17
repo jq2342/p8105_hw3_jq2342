@@ -8,6 +8,7 @@ output: github_document
 ### Loading package and data
 ```{r}
 library(tidyverse)
+library(patchwork)
 ```
 
 # Problem 2
@@ -124,7 +125,7 @@ ny_noaa_3=ny_noaa %>%
 
 noaa_plot_3=
 ggplot(ny_noaa_3, aes(x=year, y=snow))+
-  geom_hex()+
+  geom_violin()+
   labs(y= "Snowfall", x = "Year")
 
 noaa_plot_2+noaa_plot_3
